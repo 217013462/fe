@@ -4,7 +4,7 @@ import http from '../common/http-common';
 import moment from 'moment';
 import dogbreeds from '../public/data/dogbreeds.json'
 
-const authLogin = localStorage.getItem("auth");
+  const authLogin = localStorage.getItem("auth");
 
 function AddDogForm() {
   

@@ -10,7 +10,7 @@ function onFinish(values) {
   let encoded = `${data.username}:${data.password}`;
   let accessToken = base64_encode(encoded);
 
-      http.get('/user/profile', {
+      http.get(`/user/${data.username}`, {
         headers: {
           'Authorization': `Basic ${accessToken}`
         }})
@@ -18,6 +18,7 @@ function onFinish(values) {
           console.log(response.status)
           if(response.data){
             localStorage.setItem("auth", accessToken);
+            localStorage.setItem("user", JSON.stringify(response.data[0]));
             message.success(`Login Successful. Welcome ${data.username}.`);
           } else {
             message.success('Fail to Login');
