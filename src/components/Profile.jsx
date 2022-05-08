@@ -1,40 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import http from '../common/http-common.js'
-import { useNavigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spin, Select } from 'antd';
 import { LoadingOutlined, RollbackOutlined } from '@ant-design/icons';
+import NotFound from './NotFound';
 
-
-function Profile(props) {  
-  const authLogin = localStorage.getItem("auth");
-  const authUser = localStorage.getItem("user");
-  const loggedUser = JSON.parse(authUser);
-  
+const Profile = () => { 
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(true);
-  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const { auth } = useAuth();
 
-  React.useEffect(()=> {
-    http.get(`/user/${loggedUser.username}`, {
+
+  useEffect(
+    async () => {
+      setLoading(true);
+      const accessToken = auth.accessToken;
+      try {
+        const response = await http.get(`/user/${auth.username}`,{
       headers: {
-        'Authorization': `Basic ${authLogin}`
-      }})
-    .then((response)=>{
-      setUser(response.data[0])
-    }).then(()=>{setLoading(false)
-    })
-  }, []);
+        'Authorization': `Basic ${accessToken}`
+      }});
+        setUser(response.data[0]);
+        } catch (err) {
+        concole.log(err);
+        }
+      setLoading(false);
+      }, []);
 
   if(loading){
     const antIcon = <LoadingOutlined spin />;
-    return (<div align="center"><Spin tip="Loading Profile..." indicator = {antIcon}/></div>)
+    return (<div align="center"><Spin tip="Loading User Profile..." indicator = {antIcon}/></div>)
   } else {
   if(!user){
     return (
       <NotFound />
     )
-  } else { /* 
-    console.log(`Welcome ${user.username}`) */
+  } else { 
+    console.log(user)
     return(
         <>
           <div align="center">
@@ -44,8 +48,11 @@ function Profile(props) {
             <h3>Username: <b>{user.username}</b></h3>
             { (user.firstname !== "") && <p>First Name: <b>{user.firstname}</b></p> }
             { (user.lastname !== "") && <p>Last Name: <b>{user.lastname}</b></p> }
-            <p>Email: <b>{user.email}</b></p>
-            <Button type="primary" icon={<RollbackOutlined />} onClick={()=>navigate(-1)} />
+            <p>E-mail: <b>{user.email}</b></p>
+            {auth.role == "admin" ? (<><p>Location: <b>{user.location}</b></p></>):(<></>)}
+            <br></br>
+            <br></br>
+            <Button icon={<RollbackOutlined />} onClick={()=>navigate(-1)}>Back</Button>
             <br></br>
             <br></br>
           </div>

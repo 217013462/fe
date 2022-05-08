@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import http from '../common/http-common'
+import { useNavigate } from 'react-router-dom';
+import http from '../common/http-common';
+import { LoadingOutlined, UserAddOutlined } from '@ant-design/icons';
 
 function RegistrationForm() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   
   function onFinish(values) {
+    setLoading(true);
     const {confirm, ...data} = values;
     
     http.post('/user/reg', {
@@ -17,7 +22,11 @@ function RegistrationForm() {
     })
     .then((response)=>{
       console.log(response.data)
-      message.success('Registration Completed.')  
+      setLoading(false);
+      console.log('Registration Completed')
+      message.success(`Registration Successful. Welcome ${data.username}.`)
+      setTimeout(()=>
+      navigate('/login'), 3000);
     })
     .catch((err)=>{
       console.log(err)
@@ -28,7 +37,7 @@ function RegistrationForm() {
     labelCol: { xs: { span: 24 }, sm: { span: 6 } },
     wrapperCol: { xs: { span: 24 }, sm: { span: 12 } }
   };
-  const DetailFormItemLayout = {
+  const tailFormItemLayout = {
     wrapperCol: { xs: { span: 24, offset: 0 }, sm: { span: 16, offset: 6 } }
   };
 
@@ -56,24 +65,25 @@ function RegistrationForm() {
       }
     })
   ]
-  const sendForm = () => {
-    const hide = message.loading('Registration in progress...', 0);
-    // Dismiss manually and asynchronously
-    setTimeout(hide, 2500);
-  }
+
   return (
-    <Form {...formItemLayout} name="register" onFinish={onFinish}>
-      <Form.Item name="firstname" label="First Name"><Input /></Form.Item>
-      <Form.Item name="lastname" label="Last Name"><Input /></Form.Item>
-      <Form.Item name="username" label="Username" rules={usernameRules}><Input /></Form.Item>
-      <Form.Item name="email" label="E-mail" rules={emailRules}><Input /></Form.Item>
-      <Form.Item name="password" label="Password" rules={passwordRules}><Input.Password /></Form.Item>
-      <Form.Item name="confirm" label="Confirm Password" rules={confirmPwdRules}><Input.Password /></Form.Item>
-      <Form.Item {...DetailFormItemLayout}>
-        <Button type="primary" htmlType="submit" onClick={sendForm}>Register</Button>
-      <p style={{color:'red'}}>* is a required field</p>
-      </Form.Item>
-    </Form>
+    <>
+      <Form {...formItemLayout} name="register" onFinish={onFinish}>
+        <Form.Item name="firstname" label="First Name"><Input /></Form.Item>
+        <Form.Item name="lastname" label="Last Name"><Input /></Form.Item>
+        <Form.Item name="username" label="Username" rules={usernameRules}><Input /></Form.Item>
+        <Form.Item name="email" label="E-mail" rules={emailRules}><Input /></Form.Item>
+        <Form.Item name="password" label="Password" rules={passwordRules}><Input.Password /></Form.Item>
+        <Form.Item name="confirm" label="Confirm Password" rules={confirmPwdRules}><Input.Password /></Form.Item>
+        <Form.Item {...tailFormItemLayout}>
+          { loading ? (
+                <LoadingOutlined spin />
+              ):(
+          <Button icon={<UserAddOutlined />} type="primary" htmlType="submit">Register</Button>)}
+          </Form.Item>
+        </Form>
+    </>
+    
   );
 }
 

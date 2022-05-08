@@ -1,22 +1,30 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, Col, Row, Spin, Select, Input } from 'antd';
 import http from '../common/http-common.js';
-import { LoadingOutlined } from '@ant-design/icons';
+import useAuth from '../hooks/useAuth';
+import { LoadingOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 
-function Dog() {
+const Dog = () => {
+  const { auth } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [dog, setDog] = useState(null);
+  const navigate = useNavigate();
 
-  const [loading, setLoading] = React.useState(true);
-  const [dog, setDog] = React.useState(null);
-  React.useEffect(()=>{
-    http.get('/dog')
-    .then((response)=>{
-      setDog(response.data);
-    }).then(()=>{setLoading(false)
-    })
-  }, []);
+  useEffect(
+    async () => {
+      setLoading(true);
+      try {
+        const response = await http.get('/dog');
+        setDog(response.data);
+        } catch (err) {
+        concole.log(err);
+        }
+      setLoading(false);
+      }, []);
 
-  const [searchBreed, setSearchBreed] = React.useState('');
+  const [searchBreed, setSearchBreed] = useState('');
   
   if(loading){
     const antIcon = <LoadingOutlined spin />;
@@ -38,6 +46,13 @@ function Dog() {
               style={{ width: 400 }}
               onChange={event => setSearchBreed(event.target.value)}
             />
+            {auth.role == "admin" ?
+              (
+                <Button icon={<PlusCircleOutlined />}  type="primary" onClick={(e) => navigate('/adddog')}>Add Dog</Button>
+              ):(
+                <p></p>
+              )
+            }
             <br></br>
             <br></br>
             <Row justify="space-around">

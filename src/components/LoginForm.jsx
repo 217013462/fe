@@ -1,59 +1,94 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import http from '../common/http-common';
+import useAuth from '../hooks/useAuth';
 import {decode as base64_decode, encode as base64_encode} from 'base-64';
+import { LoadingOutlined, LoginOutlined } from '@ant-design/icons';
 
-function LoginForm() {
+const LoginForm = () => {
+  const { setAuth } = useAuth();
   
-function onFinish(values) {
-  const {confirm, ...data} = values;
-  let encoded = `${data.username}:${data.password}`;
-  let accessToken = base64_encode(encoded);
-
-      http.get(`/user/${data.username}`, {
-        headers: {
-          'Authorization': `Basic ${accessToken}`
-        }})
-        .then((response)=>{
-          console.log(response.status)
-          if(response.data){
-            localStorage.setItem("auth", accessToken);
-            localStorage.setItem("user", JSON.stringify(response.data[0]));
-            message.success(`Login Successful. Welcome ${data.username}.`);
-          } else {
-            message.success('Fail to Login');
-          }
-        })
-        .catch((err)=>{
-          console.log(err)
-        })
-    }
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
   const formItemLayout = {
     labelCol: { xs: { span: 24 }, sm: { span: 6 } },
     wrapperCol: { xs: { span: 24 }, sm: { span: 12 } }
-  };
-  const DetailFormItemLayout = {
+    };
+  
+  const tailFormItemLayout = {
     wrapperCol: { xs: { span: 24, offset: 0 }, sm: { span: 16, offset: 6 } }
-  };
+    };
 
   const usernameRules = [
     {required: true, message: 'Please input a username.'}
-  ]
+    ]
     
   const passwordRules = [
     {required: true, message: 'Please input a password.'}
-  ]
+    ]
+  
+  const onFinish = async (e) => {
+    setLoading(true);
+    try {
+      const encoded = `${username}:${password}`;
+      const accessToken = base64_encode(encoded);
+      const response = await http.get(`/user/${username}`, {
+        headers: {'Authorization': `Basic ${accessToken}`}}, {
+        withCredentials: true
+      });
+      console.log(response.status)
+      const userData = response?.data[0]
+      const role = userData.role;
+      setAuth({username, password, role, accessToken});
+      setUsername('');
+      setPassword('');
+      setLoading(false);
+      console.log(`Welcome ${username} (${role})`);
+      message.success(`Login Successful. Welcome ${username}.`);
+      navigate('/');
+    } catch (err) {
+      setLoading(false);
+      if (!err?.response) {
+        console.log(err)
+        message.error('No Server Response');
+        } else if (err.response?.status == 401) {
+        message.error('Unauthorized');
+        } else {
+        message.error('Login Failed');
+        }
+      }
+    }
 
-  return (
-    <Form {...formItemLayout} name="register" onFinish={onFinish}>
-      <Form.Item name="username" label="Username" rules={usernameRules}><Input /></Form.Item>
-      <Form.Item name="password" label="Password" rules={passwordRules}><Input.Password /></Form.Item>
-      <Form.Item {...DetailFormItemLayout}>
-        <Button type="primary" htmlType="submit">
-          Login
-        </Button>
-      </Form.Item>
-    </Form>
-  );
+    return (
+      <>
+          <Form {...formItemLayout} name="register" onFinish={onFinish}>
+            <Form.Item name="username" label="Username" rules={usernameRules}>
+              <Input
+                id="username"
+                autoComplete="off"
+                onChange={(e) => setUsername(e.target.value)}
+                value={username}/>
+              </Form.Item>
+            <Form.Item name="password" label="Password" rules={passwordRules}>
+              <Input.Password
+                id="password"
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
+                />
+              </Form.Item>
+            <Form.Item {...tailFormItemLayout}>
+              { loading ? (
+                <LoadingOutlined spin />
+              ):(
+                <Button icon={<LoginOutlined />} type="primary" htmlType="submit">Login</Button>)}
+              </Form.Item>
+            </Form>
+      </>
+    )
 }
+
 export default LoginForm;

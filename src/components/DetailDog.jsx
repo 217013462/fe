@@ -1,22 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import http from '../common/http-common.js'
+import useAuth from '../hooks/useAuth';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spin, Select } from 'antd';
-import { LoadingOutlined, RollbackOutlined } from '@ant-design/icons';
-import NotFound from './NotFound'
+import { LoadingOutlined, RollbackOutlined, EditOutlined } from '@ant-design/icons';
+import NotFound from './NotFound';
+import DeleteDog from './DeleteDog';
+import UpdateDogForm from './UpdateDogForm';
 
-function DetailDog(props) {  
+const DetailDog = (props) => {  
   const { id } = useParams();  
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(true);
-  const [dog, setDog] = React.useState(null);
-  React.useEffect(()=> {
-    http.get(`/dog/${id}`)
-    .then((response)=>{
-      setDog(response.data)
-    }).then(()=>{setLoading(false)
-    })
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [dog, setDog] = useState(null);
+  const { auth } = useAuth();
+
+  useEffect(
+    async () => {
+      setLoading(true);
+      try {
+        const response = await http.get(`/dog/${id}`);
+        setDog(response.data);
+        } catch (err) {
+        concole.log(err);
+        }
+      setLoading(false);
+      }, []);
 
   if(loading){
     const antIcon = <LoadingOutlined spin />;
@@ -33,6 +42,7 @@ function DetailDog(props) {
           <div align="center">
             <br></br>
             <br></br>
+            <br></br>
             <h2>Dog ID: <b>{dog._id}</b></h2>
             <br></br>
             <img src={dog.imageURL} alt={dog.name} />
@@ -42,7 +52,18 @@ function DetailDog(props) {
             <p>Gender: <b>{dog.gender}</b></p>
             { (dog.birthdate !== "") && <p>Birth Date: <b>{dog.birthdate}</b></p> }
             <p>Location: <b>{dog.location}</b></p>
-            <Button type="primary" icon={<RollbackOutlined />} onClick={()=>navigate(-1)} />
+            {auth.role == "admin" ?
+              (<>
+                <Button icon={<EditOutlined />} type="primary" onClick={(e) => navigate(`/dog/update/${dog._id}`)}>Edit</Button>
+                <DeleteDog />
+              </>
+              ):(
+                <></>
+              )
+            }
+            <br></br>
+            <br></br>
+            <Button icon={<RollbackOutlined />} onClick={()=>navigate(-1)}>Back</Button>
             <br></br>
             <br></br>
           </div>
