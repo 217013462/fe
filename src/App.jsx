@@ -12,6 +12,8 @@ import NotFound from './components/NotFound';
 import AddDog from './components/AddDog';
 import UpdateDogForm from './components/UpdateDogForm';
 import Profile from './components/Profile';
+import DogIdentifier from './components/DogIdentifier';
+import AboutUs from './components/AboutUs';
 import useAuth from './hooks/useAuth';
 
 const App = () => {
@@ -36,10 +38,12 @@ const App = () => {
                   Guest </p>}
               </div>
               <Link to="/">Home</Link>
+              <Link to="/about">About Us</Link>
               <Link to="/dog">Dog</Link>
+              <Link to="/identifier">Identifier</Link>
               {auth.username ? (<></>):(<><Link to="/register">Register</Link></>)}
               {auth.username ? (<></>):(<><Link to="/login">Login</Link></>)}
-              {auth.username ? (<><Link to = "/user/">Profile</Link></>):(<></>)}
+              {auth.username ? (<><Link to = "/user">Profile</Link></>):(<></>)}
               {auth.username ? (<><Link onClick={()=>Logout()} to = "/">Logout</Link></>):(<></>)}
             </Space>
           </nav>
@@ -55,7 +59,9 @@ const App = () => {
             
             <Route path ="/adddog" element={<AddDog />} />
             <Route path ="/dog/update/:id" element={<UpdateDogForm />} />
-            <Route path ="/user/" element={<Profile />} />
+            <Route path ="/user" element={<Profile />} />
+            <Route path ="/identifier" element={<DogIdentifier />} />
+            <Route path ="/about" element={<AboutUs />} />
             
           </Routes>
         </Content>

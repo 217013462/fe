@@ -7,12 +7,17 @@ import moment from 'moment';
 import dogbreeds from '../public/data/dogbreeds.json'
 import { LoadingOutlined, PlusCircleOutlined, RollbackOutlined } from '@ant-design/icons';
 
-
-const onChange = (date, dateString) => {
-  console.log(date, dateString)
-}
-
 const AddDogForm = () => {
+  
+  function disabledDate(current) {
+    // Can not select days in the future
+    return current > moment().endOf('day');
+  }
+  
+  const onChange = (date, dateString) => {
+    console.log(date, dateString)
+  }
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { auth } = useAuth();
@@ -24,11 +29,19 @@ const AddDogForm = () => {
     const {confirm, ...data} = values;
     console.log(values);
     
+    if(!data.birthdate){
+      console.log('No Birth date were selected.');
+      var bdate = ("");
+    } else {
+      console.log(moment(data.birthdate).format("YYYY-MM-DD"));
+      var bdate = moment(data.birthdate).format("YYYY-MM-DD");
+    }
+    
     http.post('/dog/add', {
       breed: data.breed,
       name: data.name,
       gender: data.gender,
-      birthdate: moment(data.birthdate).format("YYYY-MM-DD"),
+      birthdate: bdate,
       location: data.location      
     } , {
       headers: {
@@ -81,7 +94,7 @@ const AddDogForm = () => {
             })}    
           </Select>
         </Form.Item>
-        <Form.Item name="name" label="Name"><Input /></Form.Item>
+        <Form.Item name="name" label="Name" initialValue=""><Input /></Form.Item>
         <Form.Item name="gender" label="Gender" rules={genderRules}>
           <Select>
             <Option value="Male">Male</Option>
@@ -89,7 +102,7 @@ const AddDogForm = () => {
           </Select>  
         </Form.Item>
         <Form.Item name="birthdate" label="Birth Date">
-          <DatePicker onChange={onChange}/>
+          <DatePicker disabledDate={disabledDate} onChange={onChange}/>
         </Form.Item>
         <Form.Item name="location" label="Location" rules={locationRules}>
           <Select>
